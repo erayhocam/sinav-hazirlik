@@ -169,6 +169,19 @@ function sayac(deneme) {
     else if ((deneme || 0) < 20) setTimeout(() => sayac((deneme || 0) + 1), 500);
   } catch (e) { /* sayaç hatası siteyi etkilemesin */ }
 }
+// renk teması (varsayılan Frost); seçim bu cihazda hatırlanır
+function tonAyarla(ton) {
+  if (ton === 'frost') document.documentElement.removeAttribute('data-ton'); else document.documentElement.setAttribute('data-ton', ton);
+  document.querySelectorAll('.ton').forEach(b => b.setAttribute('aria-pressed', b.dataset.ton === ton ? 'true' : 'false'));
+  try { localStorage.setItem('hazirlik-ton', ton); } catch (e) { /* kayıt yoksa da çalışır */ }
+}
+(function () {
+  let ton = 'frost';
+  try { ton = localStorage.getItem('hazirlik-ton') || 'frost'; } catch (e) {}
+  if (!['frost', 'aurora', 'ocean', 'sunset'].includes(ton)) ton = 'frost';
+  tonAyarla(ton);
+  document.querySelectorAll('.ton').forEach(b => { b.onclick = () => tonAyarla(b.dataset.ton); });
+})();
 window.addEventListener('hashchange', yonlendir);
 try {
   yonlendir();
