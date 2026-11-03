@@ -158,6 +158,16 @@ function yonlendir() {
   else if (SINIFLAR.includes(+p[0])) anaSayfa(+p[0], p[1] || 'ingilizce');
   else anaSayfa(null, null);
   kaydir();
+  sayac();
+}
+
+// GoatCounter: sayfa adresi #/... olduğundan her sayfa geçişi elle sayılır (betik gecikmeli yüklenebilir)
+function sayac(deneme) {
+  try {
+    const yol = '/' + (location.hash.replace(/^#\/?/, '') || '');
+    if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: yol, title: document.title });
+    else if ((deneme || 0) < 20) setTimeout(() => sayac((deneme || 0) + 1), 500);
+  } catch (e) { /* sayaç hatası siteyi etkilemesin */ }
 }
 window.addEventListener('hashchange', yonlendir);
 try {
