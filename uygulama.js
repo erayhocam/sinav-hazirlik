@@ -25,8 +25,9 @@ function anaSayfa(sinif, ders) {
     const liste = SINAVLAR.filter(s => s.sinif === sinif && s.ders === ders);
     sonuc = `<div class="kartlar-liste">${liste.map(kartHtml).join('')}</div>`;
   }
-  kok.innerHTML = `<h1>Sınava Hazırlık Soruları</h1>
-    <p class="alt-baslik">Sınıfını seç; yazılı sınav formatındaki hazırlık sorularını çöz, ardından cevap anahtarından kendini kontrol et.</p>
+  kok.innerHTML = `<div class="hero"><span class="logo buyuk"><img src="img/logo.png" alt="" width="256" height="256"></span>
+      <div><h1>Sınava Hazırlık Soruları</h1>
+      <p class="alt-baslik">Sınıfını seç; yazılı sınav formatındaki hazırlık sorularını çöz, ardından cevap anahtarından kendini kontrol et.</p></div></div>
     <section class="secim"><h2>Sınıf</h2><div class="grup">${sinifHaplari}</div>${dersBolumu}</section>${sonuc}`;
 }
 
