@@ -48,6 +48,9 @@
 .gorsel img { width: 100%; border-radius: .4em; display: block; }
 .diyalog { border-collapse: collapse; } .diyalog td { vertical-align: top; padding: .05em .4em .05em 0; }
 .diyalog td.kisi { font-weight: 700; white-space: nowrap; }
+.diyalog .dsat { display: inline-block; width: 26em; max-width: 100%; min-height: 2em; border-bottom: 1.2px dotted #444; vertical-align: bottom; }
+.diyalog .dip { color: #333; }
+.diyalog .dsat:has(.cvp) { display: inline; width: auto; min-height: 0; border: 0; } /* cevaplı kâğıtta cevap satıra akar */
 .kartlar { display: grid; grid-template-columns: repeat(4, 1fr); gap: .45em; width: 100%; }
 .kart { border: 1.3px solid #333; border-radius: .4em; overflow: hidden; font-size: .9em; }
 .kart .kb { background: #222; color: #fff; text-align: center; font-weight: 700; font-size: .9em; padding: .1em; }

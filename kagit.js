@@ -35,9 +35,12 @@ const Kagit = (() => {
         const g = ipucu(u.metin).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
         return `<div class="uyaran">${b}${g}</div>`;
       }
-      case 'diyalog':
+      case 'diyalog': // "bosluk": n olan konuşma cevap yeridir (eksik diyalog); ayrıca alt soru satırı açılmaz
         return `<div class="uyaran"><table class="diyalog">${u.konusmalar.map(k =>
-          `<tr><td class="kisi">${esc(k.kisi)}:</td><td>${esc(k.soz)}</td></tr>`).join('')}</table></div>`;
+          `<tr><td class="kisi">${esc(k.kisi)}:</td><td>${k.bosluk ? `<span class="bn">${k.bosluk}.</span> ` +
+            (k.ipucu ? `<i class="dip">${esc(k.ipucu)}</i> ` : '') +
+            `<span class="dsat">${s.alt_sorular[k.bosluk - 1] ? cvp(s.alt_sorular[k.bosluk - 1], mod) : ''}</span>`
+            : esc(k.soz)}</td></tr>`).join('')}</table></div>`;
       case 'metinler':
         return `<div class="metinler" style="grid-template-columns:repeat(${u.ogeler.length},1fr)">${u.ogeler.map(o =>
           `<div class="kisa">${o.foto ? `<div class="kf">${resim(d, o.foto)}</div>` : ''}` +
