@@ -76,6 +76,7 @@ function sinavSayfasi(s) {
     <p class="alt-baslik"><b>${esc(dersAdi(s))}</b> · ${esc(s.donem)} · Senaryo ${s.senaryo} · ${s.sorular.length} soru · 100 puan</p>
     <div class="arac-cubugu">
       <button class="dugme" id="b-yazdir">🖨 Sınavı yazdır / PDF</button>
+      <button class="dugme" id="b-yazdir2" title="Yazı boyutunu gerekirse küçülterek sınavı en fazla 2 sayfaya sığdırır">🖨 2 sayfaya sığdır</button>
       <button class="dugme ikincil" id="b-anahtar">📄 Cevap anahtarını yazdır</button>
       <button class="dugme ikincil" id="b-hepsi">Tüm cevapları göster</button>
     </div>
@@ -84,6 +85,7 @@ function sinavSayfasi(s) {
     ${sorular}
     <p class="baski-bilgi">Önce soruları kendin çöz, sonra “Cevabı göster” ile kontrol et.</p>`;
   document.getElementById('b-yazdir').onclick = () => yazdir(s, false);
+  document.getElementById('b-yazdir2').onclick = () => yazdir(s, false, 2);
   document.getElementById('b-anahtar').onclick = () => yazdir(s, true);
   const ayarla = (kart, ac) => {
     const i = +kart.querySelector('.cevap-dugme').dataset.i;
@@ -130,13 +132,13 @@ function anahtarBaskiBloklari(s, puanlar) {
     })];
 }
 
-async function yazdir(s, anahtar) {
+async function yazdir(s, anahtar, sayfa) {   // sayfa: verilirse o sayfa sayısına sığdırır (yazı küçülür)
   const baski = document.getElementById('baski');
   baski.hidden = false;
   const puanlar = Kagit.puanDagit(s.sorular);
   const bloklar = anahtar ? anahtarBaskiBloklari(s, puanlar)
     : [baslikHtml(s), ...s.sorular.map((q, i) => Kagit.soruHtml(i + 1, q, puanlar[i], 'ogrenci'))];
-  await Kagit.diz(baski, bloklar, { sayfa: 'oto', yay: false, altBilgi: `Sınava Hazırlık Soruları · ${dersAdi(s)} · Senaryo ${s.senaryo}` });
+  await Kagit.diz(baski, bloklar, { sayfa: sayfa || 'oto', yay: false, altBilgi: `Sınava Hazırlık Soruları · ${dersAdi(s)} · Senaryo ${s.senaryo}` });
   document.body.classList.add('yazdiriyor');
   const bitir = () => { document.body.classList.remove('yazdiriyor'); baski.hidden = true; baski.innerHTML = ''; };
   window.addEventListener('afterprint', bitir, { once: true });
