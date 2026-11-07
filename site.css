@@ -139,15 +139,10 @@ h1 { font-family: 'Baloo 2', 'Nunito', sans-serif; font-size: clamp(1.6rem, 4.4v
 .akis .cizgi { height: 2.2em; }
 .akis .tablo { font-size: .95em; }
 .akis .metinler { grid-template-columns: 1fr !important; }
-.akis .gorsel { width: 100%; }
 @media (min-width: 700px) { .akis .metinler { grid-template-columns: repeat(2, 1fr) !important; } }
 .akis img { max-width: 100%; height: auto; }
 .akis .cvp { color: #c4161c; }
-.akis .govde.ust-resim .gorsel { width: min(100%, 280px); }
-.akis .govde:not(.ust-resim) .gorsel { width: min(40%, 280px); }
 @media (max-width: 600px) {
-  .akis .govde:not(.ust-resim) { flex-direction: column; }
-  .akis .govde:not(.ust-resim) .gorsel { width: min(100%, 280px); align-self: center; }
   .akis .tablo td.bos { min-width: 0; }
   .akis .tablo th, .akis .tablo td { padding: .3em .25em; }
   .akis .tablo .bn { display: none; }

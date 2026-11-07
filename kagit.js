@@ -13,6 +13,8 @@ const Kagit = (() => {
     if (!tam || !kabul.length) return esc(a.cevap);
     return `${esc(a.cevap)} <span class="kbl">/ ${kabul.map(esc).join(' / ')}</span>`;
   }
+  // anahtar: eşleştirmede harfin yanında sağ sütundaki cevap da görünür
+  const anahtarMetni = a => cevapMetni(a) + (a.cevap_metni ? ` <span class="kbl">— ${esc(a.cevap_metni)}</span>` : '');
   const cvp = (a, mod) => mod === 'cevapli' ? `<span class="cvp">${cevapMetni(a)}</span>` : '';
 
   function hucre(h, s, mod) {
@@ -25,6 +27,14 @@ const Kagit = (() => {
       if (h.isaret) return '<td class="isaret">✓</td>';
     }
     return `<td>${esc(h)}</td>`;
+  }
+
+  // konuşma içinde "[1]" işareti: cevap yeri satır içinde boşluk (kelime kutulu diyalog); cevaplı kâğıtta cevap yazılır
+  function satirIci(soz, s, mod) {
+    return esc(soz).replace(/\[(\d)\]/g, (m, n) => {
+      const a = s.alt_sorular[n - 1];
+      return `<span class="ib"><span class="bn">${n}.</span>${mod === 'cevapli' && a ? `<span class="cvp">${esc(a.cevap)}</span>` : ''}</span>`;
+    });
   }
 
   function blok(u, s, mod) {
@@ -40,7 +50,7 @@ const Kagit = (() => {
           `<tr><td class="kisi">${esc(k.kisi)}:</td><td>${k.bosluk ? `<span class="bn">${k.bosluk}.</span> ` +
             (k.ipucu ? `<i class="dip">${esc(k.ipucu)}</i> ` : '') +
             `<span class="dsat">${s.alt_sorular[k.bosluk - 1] ? cvp(s.alt_sorular[k.bosluk - 1], mod) : ''}</span>`
-            : esc(k.soz)}</td></tr>`).join('')}</table></div>`;
+            : satirIci(k.soz, s, mod)}</td></tr>`).join('')}</table></div>`;
       case 'metinler':
         return `<div class="metinler" style="grid-template-columns:repeat(${u.ogeler.length},1fr)">${u.ogeler.map(o =>
           `<div class="kisa">${o.foto ? `<div class="kf">${resim(d, o.foto)}</div>` : ''}` +
@@ -49,6 +59,14 @@ const Kagit = (() => {
         return `<div class="kartlar">${u.kartlar.map(k =>
           `<div class="kart"><div class="kb">${esc(u.baslik)}</div>` + (k.foto ? `<div class="foto">${resim(d, k.foto)}</div>` : '') +
           u.alanlar.map(a => `<div class="alan"><b>${esc(a)}</b>: ${esc(k[a])}</div>`).join('') + '</div>').join('')}</div>`;
+      case 'kelime_kutusu': // özel tip: kelime kutusu (doğru cevaplar + fazla kelimeler karışık)
+        return `<div class="kkutu"><div class="kk-etiket">WORD BOX</div><div class="kk-kel">${u.kelimeler.map(w => `<span>${esc(w)}</span>`).join('')}</div></div>`;
+      case 'eslestirme': { // özel tip: solda sorular (alt sorular), ortada harf kutusu, sağda karışık cevaplar
+        const sat = s.alt_sorular.map((a, i) => `<tr><td class="eq"><div class="ec"><b class="en">${i + 1}</b><span>${esc(a.soru)}</span></div></td>` +
+          `<td class="ek"><span class="kutu">${mod === 'cevapli' ? `<span class="cvp">${esc(a.cevap)}</span>` : ''}</span></td>` +
+          `<td class="ea"><div class="ec er"><b class="eh">${String.fromCharCode(65 + i)}</b><span>${esc(u.secenekler[i])}</span></div></td></tr>`).join('');
+        return `<table class="esl">${sat}</table>`;
+      }
       case 'tablo': {
         const bas = (u.basliklar || []).some(Boolean) ? `<tr>${u.basliklar.map(b => `<th>${esc(b)}</th>`).join('')}</tr>` : '';
         const b = u.baslik ? `<div class="mb">${esc(u.baslik)}</div>` : '';
@@ -66,7 +84,17 @@ const Kagit = (() => {
   }
 
   // mod: 'ogrenci' | 'cevapli'; arac: ekranda düzenleme düğmeleri
-  function soruHtml(no, s, puan, mod, arac = '') {
+  // soruda resim var mı (yan / üst resim, resim sırası, kısa metin fotoğrafları, kartlar)
+  function gorselVar(s) {
+    const g = s.gorsel || {};
+    if (g.dosya) return true;
+    if (s.alt_sorular.some(a => a.foto)) return true;
+    const ua = Array.isArray(s.uyaran) ? s.uyaran : (s.uyaran ? [s.uyaran] : []);
+    return ua.some(u => (u.ogeler || []).some(o => o.foto) || (u.kartlar || []).some(k => k.foto));
+  }
+
+  // gs: görsel ölçeği (1 = olduğu gibi; elle küçültülür)
+  function soruHtml(no, s, puan, mod, arac = '', gs = 1) {
     const g = s.gorsel || {};
     const bicim = s.cevap_bicimi || 'satir';
     const uyaranlar = Array.isArray(s.uyaran) ? s.uyaran : (s.uyaran ? [s.uyaran] : []);
@@ -83,13 +111,17 @@ const Kagit = (() => {
     if (bicim === 'bosluklu') {
       alt = `<ol class="alt">${s.alt_sorular.map((a, i) =>
         `<li class="bl"><span class="s">${harf(i)})</span> ${ipucu(a.soru)}${cvp(a, mod)}</li>`).join('')}</ol>`;
-    } else if (bicim !== 'tablo' && !resimAlti) {
+    } else if (bicim === 'dy') { // özel tip: doğru / yanlış — her cümlenin sonunda T / F kutusu
+      alt = `<ol class="alt dy">${s.alt_sorular.map((a, i) =>
+        `<li><b class="en">${i + 1}</b><span class="dyt">${esc(a.soru)}</span>` +
+        `<span class="kutu">${mod === 'cevapli' ? `<span class="cvp">${esc(a.cevap)}</span>` : ''}</span></li>`).join('')}</ol>`;
+    } else if (bicim !== 'tablo' && bicim !== 'eslestirme' && !resimAlti) {
       alt = `<ol class="alt">${s.alt_sorular.map((a, i) =>
         `<li><span class="s">${harf(i)})</span> ${esc(a.soru)}<div class="cizgi">${a.baslangic && mod !== 'cevapli' ? `<b class="bas">${esc(a.baslangic)}</b>` : ''}${cvp(a, mod)}</div></li>`).join('')}</ol>`;
     }
     const ub = uyaranlar.map(u => blok(u, s, mod)).join('');
     const govde = ub || yanResim ? `<div class="govde${g.yerlesim === 'ust' ? ' ust-resim' : ''}">${ub ? `<div class="ub">${ub}</div>` : ''}${yanResim}</div>` : '';
-    return `<div class="soru" data-id="${esc(s.id)}">${arac}
+    return `<div class="soru" data-id="${esc(s.id)}"${gs !== 1 ? ` style="--gs:${gs}"` : ''}>${arac}
   <div class="ust"><div class="no">${no}</div><div class="yonerge">${esc(s.yonerge)}</div>
     <div class="sag"><span class="puan">${puanYazisi(puan, s.alt_sorular.length)}</span><span class="kazanim">${esc(s.kazanim)}</span></div></div>
   ${govde}${sira}${ornek}${alt}</div>`;
@@ -118,8 +150,8 @@ const Kagit = (() => {
   function anahtarBloklari(sorular, puanlar, a, sinif) {
     const bas = `<div class="ak-baslik">${esc(sinavAdi(a, sinif))} — Answer Key</div>`;
     return [bas, ...sorular.map((s, i) => {
-      const tablo = s.cevap_bicimi === 'tablo';
-      const satir = s.alt_sorular.map((x, j) => `<div class="ak-satir"><b>${tablo ? (j + 1) + '.' : harf(j) + ')'}</b> ${cevapMetni(x)}</div>`).join('');
+      const tablo = s.cevap_bicimi === 'tablo' || s.cevap_bicimi === 'eslestirme';
+      const satir = s.alt_sorular.map((x, j) => `<div class="ak-satir"><b>${tablo ? (j + 1) + '.' : harf(j) + ')'}</b> ${anahtarMetni(x)}</div>`).join('');
       return `<div class="ak-blok"><div class="ak-ust"><b>Question ${i + 1}</b><span>${puanYazisi(puanlar[i], s.alt_sorular.length)}</span>
         <span class="kazanim">${esc(s.kazanim)}</span></div>${satir}${s.puanlama ? `<div class="ak-not">${esc(s.puanlama)}</div>` : ''}</div>`;
     })];
@@ -259,5 +291,5 @@ const Kagit = (() => {
     return { sayfa: sayfalar.length, olcek: o };
   }
 
-  return { soruHtml, baslikHtml, anahtarBloklari, puanDagit, diz, cevapMetni };
+  return { gorselVar, soruHtml, baslikHtml, anahtarBloklari, puanDagit, diz, cevapMetni };
 })();
