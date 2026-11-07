@@ -22,7 +22,7 @@ function anaSayfa(sinif, ders) {
 
   let sonuc = '<div class="yakinda">Önce sınıfını seç; ardından sınavlara ulaşabilirsin.</div>';
   if (sinif) {
-    const liste = SINAVLAR.filter(s => s.sinif === sinif && s.ders === ders);
+    const liste = SINAVLAR.filter(s => s.sinif === sinif && s.ders === ders).sort((a, b) => a.deneme - b.deneme);
     sonuc = `<div class="kartlar-liste">${liste.map(kartHtml).join('')}</div>`;
   }
   kok.innerHTML = `<h1>Sınava Hazırlık Soruları</h1>
@@ -34,7 +34,7 @@ function kartHtml(s) {
   const adet = s.sorular.length;
   const kaz = s.kazanimlar.map(k => `<span class="etiket">${esc(k.kod.replace(/^ENG\./, ''))}${k.adet > 1 ? ' ×' + k.adet : ''}</span>`).join('');
   return `<a class="sinav-kart" href="#/sinav/${s.kod}">
-    <div class="k-baslik">Sınava Hazırlık Soruları</div>
+    <div class="k-baslik">Deneme ${s.deneme}</div>
     <div class="k-alt"><b>${esc(dersAdi(s))}</b><br>${esc(s.donem)} · Senaryo ${s.senaryo}</div>
     <div class="k-alt">${adet} soru · 100 puan</div>
     <div class="etiketler">${kaz}</div>
@@ -64,7 +64,7 @@ function cevapliHtml(no, q, puan) {
 }
 
 function sinavSayfasi(s) {
-  document.title = `Sınava Hazırlık Soruları — ${dersAdi(s)} (Senaryo ${s.senaryo})`;
+  document.title = `Sınava Hazırlık Soruları — ${dersAdi(s)} · Deneme ${s.deneme}`;
   s.sorular.forEach(q => { q._dizin = 'img'; });
   const puanlar = Kagit.puanDagit(s.sorular);
   const sorular = s.sorular.map((q, i) => `<section class="soru-kart" id="s${i + 1}">
@@ -73,7 +73,7 @@ function sinavSayfasi(s) {
       <div class="anahtar" hidden>${anahtarKutu(q)}</div></section>`).join('');
   const kaz = s.kazanimlar.map(k => `<tr><td class="n">${esc(k.kod)}</td><td>${esc(k.metin)}</td><td class="n">${k.adet} soru</td></tr>`).join('');
   kok.innerHTML = `<h1>Sınava Hazırlık Soruları</h1>
-    <p class="alt-baslik"><b>${esc(dersAdi(s))}</b> · ${esc(s.donem)} · Senaryo ${s.senaryo} · ${s.sorular.length} soru · 100 puan</p>
+    <p class="alt-baslik"><b>${esc(dersAdi(s))}</b> · Deneme ${s.deneme} · ${esc(s.donem)} · Senaryo ${s.senaryo} · ${s.sorular.length} soru · 100 puan</p>
     <div class="arac-cubugu">
       <button class="dugme" id="b-yazdir">🖨 Sınavı yazdır / PDF</button>
       <button class="dugme" id="b-yazdir2" title="Yazı boyutunu gerekirse küçülterek sınavı en fazla 2 sayfaya sığdırır">🖨 2 sayfaya sığdır</button>
@@ -110,7 +110,7 @@ function sinavSayfasi(s) {
 // ---------------- yazdırma (A4 sayfalar, Sınav Sistemi kâğıdıyla aynı çizici) ----------------
 function baslikHtml(s) {
   return `<div class="kb"><div class="kb-ust"><div class="kb-yazi">
-      <div class="kb-yil">${esc(s.donem.toLocaleUpperCase('tr-TR'))} · SENARYO ${s.senaryo}</div>
+      <div class="kb-yil">${esc(s.donem.toLocaleUpperCase('tr-TR'))} · SENARYO ${s.senaryo} · DENEME ${s.deneme}</div>
       <div class="kb-okul">SINAVA HAZIRLIK SORULARI</div>
       <div class="kb-sinav">${esc(dersAdi(s).toLocaleUpperCase('tr-TR'))}</div></div>
       <div class="kb-puan">PUAN</div></div>
@@ -118,7 +118,7 @@ function baslikHtml(s) {
 }
 
 function anahtarBaskiBloklari(s, puanlar) {
-  return [`<div class="ak-baslik">Sınava Hazırlık Soruları — ${esc(dersAdi(s))} — Cevap Anahtarı</div>`,
+  return [`<div class="ak-baslik">Sınava Hazırlık Soruları — ${esc(dersAdi(s))} · Deneme ${s.deneme} — Cevap Anahtarı</div>`,
     ...s.sorular.map((q, i) => {
       const tablo = q.cevap_bicimi === 'tablo';
       const satir = q.alt_sorular.map((a, j) => {
@@ -138,7 +138,7 @@ async function yazdir(s, anahtar, sayfa) {   // sayfa: verilirse o sayfa sayıs�
   const puanlar = Kagit.puanDagit(s.sorular);
   const bloklar = anahtar ? anahtarBaskiBloklari(s, puanlar)
     : [baslikHtml(s), ...s.sorular.map((q, i) => Kagit.soruHtml(i + 1, q, puanlar[i], 'ogrenci'))];
-  await Kagit.diz(baski, bloklar, { sayfa: sayfa || 'oto', yay: false, altBilgi: `Sınava Hazırlık Soruları · ${dersAdi(s)} · Senaryo ${s.senaryo}` });
+  await Kagit.diz(baski, bloklar, { sayfa: sayfa || 'oto', yay: false, altBilgi: `Sınava Hazırlık Soruları · ${dersAdi(s)} · Deneme ${s.deneme}` });
   document.body.classList.add('yazdiriyor');
   const bitir = () => { document.body.classList.remove('yazdiriyor'); baski.hidden = true; baski.innerHTML = ''; };
   window.addEventListener('afterprint', bitir, { once: true });
