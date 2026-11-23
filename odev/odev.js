@@ -1,7 +1,7 @@
 /* Ödev ve Soru Gönder — öğrenci sayfası. Sunucu: telefon kutusu Worker'ı (odev.js), giriş Öğrenci No + veli PIN'i.
    Sayfalar: #/ (giriş / ana) · #/odevler · #/gonder/<odev|serbest|soru>[/<ödevId>] · #/g/<gönderimId>
    Sonuç biçimi (öğretmen onayından sonra gelir; hepsi isteğe bağlı alanlar):
-     { guclu, gelisim, adim (MEB sınıf içi ölçme kılavuzu üçlüsü), ozet (eski), puan, tam, maddeler: [{ k, durum: dogru|yanlis|kismi|bos, ogrenci, dogru, aciklama }],   ← ödev / serbest
+     { guclu, gelisim, adim (MEB sınıf içi ölçme kılavuzu üçlüsü), ozet (eski), maddeler (puan yok): [{ k, durum: dogru|yanlis|kismi|bos, ogrenci, dogru, aciklama }],   ← ödev / serbest
        ipucu, kural, cevap, cozum }                                                                    ← zorlandığım soru (cevap + çözüm düğmeyle açılır)
    Eski Safari için ?. ve ?? kullanılmaz. */
 (function () {
@@ -302,7 +302,7 @@
   function notHtml(n) { return n ? '<div class="ogretmen-notu"><b>👩‍🏫 Öğretmeninin notu</b><div class="metin">' + esc(n) + '</div></div>' : ''; }
   function sonucHtml(s, tur) {
     var h = '';
-    if (s.puan != null && s.puan !== '') h += '<div class="puan-kutu">' + esc(s.puan) + (s.tam ? '<small>/ ' + esc(s.tam) + '</small>' : '') + '</div>';
+    // puan gösterilmez (2026-11-23): ödevler sınav değil, yalnız geri bildirim
     if (s.guclu) h += '<div class="kutu-guclu"><b>💪 Güçlü yönün</b><div class="metin">' + esc(s.guclu) + '</div></div>';
     if (s.gelisim) h += '<div class="kutu-gelisim"><b>🎯 Geliştirmen gereken</b><div class="metin">' + esc(s.gelisim) + '</div></div>';
     if (s.adim) h += '<div class="kutu-adim"><b>👣 Bir sonraki adımın</b><div class="metin">' + esc(s.adim) + '</div></div>';
