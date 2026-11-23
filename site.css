@@ -203,3 +203,12 @@ h1 { font-family: 'Baloo 2', 'Nunito', sans-serif; font-size: clamp(1.6rem, 4.4v
 @media print { .tonlar { display: none; } }
 
 @media (max-width: 600px) { .ust-cubuk .sag { display: none; } }
+
+/* 📸 Ödev ve Soru Gönder kartı (ana sayfa) */
+.odev-kart { display: flex; align-items: center; gap: .9rem; margin: 0 0 1.2rem; padding: .95rem 1.15rem; border-radius: 22px; text-decoration: none; color: var(--yazi);
+  background: linear-gradient(180deg, #fff, #f1f0ff); box-shadow: 0 14px 34px var(--golge-renk), inset 0 1px 0 #fff; transition: transform .15s; }
+.odev-kart:hover { transform: translateY(-2px); }
+.odev-kart .odev-ikon { font-size: 2rem; line-height: 1; flex: none; }
+.odev-kart b { display: block; font-family: 'Baloo 2', 'Nunito', sans-serif; font-size: 1.2rem; color: var(--ana); line-height: 1.2; }
+.odev-kart small { display: block; color: var(--yazi2); font-size: .88rem; font-weight: 700; }
+.odev-kart .odev-ok { margin-left: auto; font-size: 2rem; font-weight: 900; color: var(--ana); flex: none; }

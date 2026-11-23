@@ -27,6 +27,7 @@ function anaSayfa(sinif, ders) {
   }
   kok.innerHTML = `<h1>Sınava Hazırlık Soruları</h1>
     <p class="alt-baslik">Sınıfını seç; yazılı sınav formatındaki hazırlık sorularını çöz, ardından cevap anahtarından kendini kontrol et.</p>
+    <a class="odev-kart" href="odev/"><span class="odev-ikon">📸</span><span><b>Ödev ve Soru Gönder</b><small>Ödevini ya da zorlandığın soruyu fotoğrafla gönder; öğretmenin incelesin. (Öğrenci No + veli PIN'i ile giriş)</small></span><span class="odev-ok">›</span></a>
     <section class="secim"><h2>Sınıf</h2><div class="grup">${sinifHaplari}</div>${dersBolumu}</section>${sonuc}`;
 }
 

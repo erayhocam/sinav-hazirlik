@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ödev ve Soru Gönder — E-Ray</title>
+<meta name="description" content="İngilizce ödevini ya da zorlandığın soruyu fotoğrafla gönder; öğretmenin inceleyip geri bildirim versin.">
+<meta name="theme-color" content="#8796ab">
+<meta name="robots" content="noindex">
+<script>try { var t = localStorage.getItem('hazirlik-ton'); if (t === 'aurora' || t === 'ocean' || t === 'sunset') document.documentElement.setAttribute('data-ton', t); } catch (e) {}</script>
+<link rel="icon" type="image/png" href="../img/favicon.png">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+<link rel="stylesheet" href="../fonts/fonts.css">
+<link rel="stylesheet" href="../site.css?v=1795425705">
+<link rel="stylesheet" href="odev.css?v=1795425705">
+</head>
+<body>
+<header class="ust-cubuk">
+  <div class="sol">
+    <button id="geri-dugme" class="geri-dugme" hidden>← GERİ</button>
+    <a class="marka" href="#/"><span class="logo"><img src="../img/logo.png" alt="E-Ray logosu" width="256" height="256"></span><span class="marka-yazi"><b>E-Ray Sınav Sistemleri</b><small>Ödev ve Soru Gönder</small></span></a>
+  </div>
+  <div class="sag">
+    <nav><a href="../">Hazırlık Soruları</a></nav>
+    <div class="tonlar" role="group" aria-label="Renk teması">
+      <button class="ton" data-ton="frost" aria-label="Frost teması" aria-pressed="true"></button>
+      <button class="ton" data-ton="aurora" aria-label="Aurora teması" aria-pressed="false"></button>
+      <button class="ton" data-ton="ocean" aria-label="Ocean teması" aria-pressed="false"></button>
+      <button class="ton" data-ton="sunset" aria-label="Sunset teması" aria-pressed="false"></button>
+    </div>
+  </div>
+</header>
+
+<main id="uygulama"><p class="yukleniyor">Sayfa yükleniyor…</p>
+  <noscript><p class="yukleme-hata">Bu sayfanın çalışması için tarayıcıda JavaScript açık olmalıdır.</p></noscript></main>
+
+<footer class="alt-not">E-Ray Sınav Sistemleri · Gönderdiğin fotoğrafları yalnız öğretmenin görür; fotoğraflar incelemeden 30 gün sonra silinir.</footer>
+
+<script>
+setTimeout(function () {
+  var m = document.getElementById('uygulama');
+  if (m && m.getAttribute('data-hazir') !== '1') {
+    m.innerHTML = '<p class="yukleme-hata"><b>Sayfa yüklenemedi.</b><br>Tarayıcınızı (Safari / Chrome) ve telefonunuzun yazılımını güncelleyin, sayfayı yenileyin ya da başka bir tarayıcıda açın.</p>';
+  }
+}, 6000);
+</script>
+<script src="../esc.js?v=1795425705"></script>
+<script src="foto.js?v=1795425705"></script>
+<script src="odev.js?v=1795425705"></script>
+</body>
+</html>
