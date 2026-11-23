@@ -119,6 +119,13 @@ h3 { font-size: 1rem; margin: 1rem 0 .4rem; }
 .kutu-kural { background: #f3f0ff; border: 1px solid #d9d2fb; border-radius: 16px; padding: .8rem .95rem; margin: .6rem 0; }
 .kutu-cevap { background: var(--yesil-acik); border: 1px solid #b9e6d3; border-radius: 16px; padding: .8rem .95rem; margin: .6rem 0; }
 .kutu-ipucu b, .kutu-kural b, .kutu-cevap b { display: block; margin-bottom: .2rem; }
+/* MEB sınıf içi ölçme kılavuzu üçlüsü: güçlü yön · gelişim · sonraki adım (+ düzeltip yeniden gönder) */
+.kutu-guclu, .kutu-gelisim, .kutu-adim { border-radius: 16px; padding: .75rem .95rem; margin: .55rem 0; color: #1f2937; }
+.kutu-guclu { background: #e9f8ef; border: 1px solid #b9e6cb; }
+.kutu-gelisim { background: #fff4e5; border: 1px solid #f6d4a3; }
+.kutu-adim { background: #eef4ff; border: 1px solid #c6d8fb; }
+.kutu-guclu b, .kutu-gelisim b, .kutu-adim > b { display: block; margin-bottom: .2rem; }
+.kutu-adim .dugme { margin-top: .6rem; }
 .metin { white-space: pre-wrap; }
 .buyuk-foto { position: fixed; inset: 0; z-index: 130; background: #000; display: flex; align-items: center; justify-content: center; }
 .buyuk-foto img { max-width: 100%; max-height: 100%; }

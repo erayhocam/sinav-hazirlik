@@ -1,7 +1,7 @@
 /* Ödev ve Soru Gönder — öğrenci sayfası. Sunucu: telefon kutusu Worker'ı (odev.js), giriş Öğrenci No + veli PIN'i.
    Sayfalar: #/ (giriş / ana) · #/odevler · #/gonder/<odev|serbest|soru>[/<ödevId>] · #/g/<gönderimId>
    Sonuç biçimi (öğretmen onayından sonra gelir; hepsi isteğe bağlı alanlar):
-     { ozet, puan, tam, maddeler: [{ k, durum: dogru|yanlis|kismi|bos, ogrenci, dogru, aciklama }],   ← ödev / serbest
+     { guclu, gelisim, adim (MEB sınıf içi ölçme kılavuzu üçlüsü), ozet (eski), puan, tam, maddeler: [{ k, durum: dogru|yanlis|kismi|bos, ogrenci, dogru, aciklama }],   ← ödev / serbest
        ipucu, kural, cevap, cozum }                                                                    ← zorlandığım soru (cevap + çözüm düğmeyle açılır)
    Eski Safari için ?. ve ?? kullanılmaz. */
 (function () {
@@ -84,7 +84,7 @@
     var t = TUR[g.tur] || TUR.serbest, od = g.odev && veri ? veri.odevler.filter(function (o) { return o.id === g.odev; })[0] : null;
     var baslik = g.tur === 'odev' ? (od ? od.baslik : 'Ödev') : t.ad;
     return '<a class="oge" href="#/g/' + esc(g.id) + '"><span class="oge-ikon">' + t.ikon + '</span><span class="oge-metin"><b>' + esc(baslik) + '</b>' +
-      '<small>' + esc(tarih(g.at)) + ' · ' + g.foto + ' fotoğraf' + (g.not ? ' · “' + esc(g.not.slice(0, 40)) + '”' : '') + '</small></span>' +
+      '<small>' + (g.onceki ? '✍️ Düzeltilmiş · ' : '') + esc(tarih(g.at)) + ' · ' + g.foto + ' fotoğraf' + (g.not ? ' · “' + esc(g.not.slice(0, 40)) + '”' : '') + '</small></span>' +
       '<span class="durum ' + esc(g.durum) + '">' + esc(DURUM[g.durum] || g.durum) + '</span></a>';
   }
   function bekleyenOdevler() {
@@ -150,20 +150,29 @@
   }
 
   // ---------- gönderme ----------
-  function gonderSayfasi(tur, odevId) {
-    var t = TUR[tur], od = null;
+  function gonderSayfasi(tur, odevId, onceki) {
+    var t = TUR[tur], od = null, on = null;
     if (!t) { location.hash = '#/'; return; }
+    if (odevId === '-') odevId = '';
+    if (onceki) {   // ✍️ 2. deneme: geri bildirimden sonra düzeltip yeniden gönderme
+      on = veri.gonderimler.filter(function (g) { return g.id === onceki; })[0];
+      if (!on || on.durum !== 'onayli' || on.onceki || on.duzeltildi) { kok.innerHTML = '<div class="hata">Bu gönderim düzeltilip yeniden gönderilemez (ya zaten gönderdin ya da sonucu henüz gelmedi).</div><a class="dugme acik" href="#/">Ana sayfa</a>'; return; }
+    }
     if (tur === 'odev') {
       od = veri.odevler.filter(function (o) { return o.id === odevId; })[0];
+      if (!od && on) od = { id: odevId, baslik: 'Ödev', aciklama: '' };   // ödev kapanmış olsa da düzeltme gönderilebilir
       if (!od) { kok.innerHTML = '<div class="hata">Bu ödev bulunamadı ya da kapandı.</div><a class="dugme acik" href="#/odevler">Ödevlerim</a>'; return; }
     }
-    var anahtar = tur + '/' + (odevId || '');
-    if (!taslak || taslak.anahtar !== anahtar) taslak = { anahtar: anahtar, fotolar: [], not: '' };
+    var anahtar = tur + '/' + (odevId || '') + '/' + (onceki || '');
+    if (!taslak || taslak.anahtar !== anahtar) taslak = { anahtar: anahtar, fotolar: [], not: '', onceki: onceki || null };
     document.title = t.ad + ' gönder';
-    var aciklama = tur === 'odev' ? '<div class="beyaz"><h2>📘 ' + esc(od.baslik) + '</h2>' + (od.aciklama ? '<p class="metin">' + esc(od.aciklama) + '</p>' : '') +
+    var s0 = on && on.sonuc || {};
+    var duzeltme = on ? '<div class="kutu-adim"><b>✍️ Düzeltip yeniden gönderiyorsun</b><div class="metin">Öğretmeninin geri bildirimine göre çalışmanı düzelt, sonra yeni fotoğrafını çek.' +
+      (s0.adim ? '<br><b>Bir sonraki adımın:</b> ' + esc(s0.adim) : '') + (s0.gelisim ? '<br><b>Geliştirmen gereken:</b> ' + esc(s0.gelisim) : '') + '</div></div>' : '';
+    var aciklama = duzeltme + (tur === 'odev' ? '<div class="beyaz"><h2>📘 ' + esc(od.baslik) + '</h2>' + (od.aciklama ? '<p class="metin">' + esc(od.aciklama) + '</p>' : '') +
         (od.son ? '<p class="soluk kucuk">Son gün: ' + esc(gun(od.son)) + '</p>' : '') + (od.pdf ? '<p><a class="dugme acik" href="#" id="pdf-ac">📄 Ödev kâğıdını aç</a></p>' : '') + '</div>'
       : tur === 'soru' ? '<p class="alt-baslik">Zorlandığın İngilizce sorunun fotoğrafını çek. Öğretmenin önce ipucu verecek; istersen sonra cevabı da açabileceksin.</p>'
-        : '<p class="alt-baslik">İngilizce yazdığın bir metni, defterini ya da yaptığın bir çalışmayı gönder; öğretmenin kontrol etsin.</p>';
+        : '<p class="alt-baslik">İngilizce yazdığın bir metni, defterini ya da yaptığın bir çalışmayı gönder; öğretmenin kontrol etsin.</p>');
     var notEtiket = tur === 'soru' ? 'Hangi soruda zorlandın? (isteğe bağlı)' : 'Öğretmenine not (isteğe bağlı)';
     var notYer = tur === 'soru' ? 'Örnek: 3. sorudaki boşluğu anlamadım.' : 'Örnek: 2. sayfa arkada.';
     kok.innerHTML = '<h1>' + t.ikon + ' ' + esc(t.ad) + '</h1>' + aciklama +
@@ -238,7 +247,7 @@
     var b = $('#gonder'), dur = $('#g-durum');
     b.disabled = true; $('#kamera').disabled = true; $('#galeri').disabled = true;
     dur.innerHTML = '<div class="yukleme-cubuk"><i></i></div><p class="soluk kucuk" id="y-yazi">Gönderiliyor…</p>';
-    var govde = JSON.stringify({ tur: tur, odev: odevId || null, not: taslak.not, foto: taslak.fotolar.map(function (f) { return f.dataUrl; }) });
+    var govde = JSON.stringify({ tur: tur, odev: odevId || null, onceki: taslak.onceki || null, not: taslak.not, foto: taslak.fotolar.map(function (f) { return f.dataUrl; }) });
     var x = new XMLHttpRequest();
     x.open('POST', KUTU + '/api/odev/gonder');
     x.setRequestHeader('Content-Type', 'application/json'); x.setRequestHeader('X-Odev', oturum().token);
@@ -272,8 +281,17 @@
     var govde = '';
     if (g.durum === 'inceleniyor') govde = '<div class="bilgi">⏳ Öğretmenin gönderimini inceliyor. Sonuç hazır olunca burada görünecek.</div>';
     else if (g.durum === 'geri') govde = '<div class="hata">↩️ Bu gönderim sana geri gönderildi.</div>' + notHtml(g.ogretmenNotu) +
-      '<a class="dugme ana" href="#/gonder/' + esc(g.tur) + (g.odev ? '/' + esc(g.odev) : '') + '">📷 Yeniden gönder</a>';
-    else if (g.durum === 'onayli') { govde = sonucHtml(g.sonuc || {}, g.tur) + notHtml(g.ogretmenNotu); okunduYap(g.id); }
+      '<a class="dugme ana" href="#/gonder/' + esc(g.tur) + (g.odev || g.onceki ? '/' + esc(g.odev || '-') : '') + (g.onceki ? '/' + esc(g.onceki) : '') + '">📷 Yeniden gönder</a>';
+    else if (g.durum === 'onayli') {
+      govde = sonucHtml(g.sonuc || {}, g.tur) + notHtml(g.ogretmenNotu); okunduYap(g.id);
+      // ✍️ geri bildirimi kullanıp düzelt (bir kez): puanı değiştirmez, öğretmen yeni hâlini görür
+      var sonra = veri.gonderimler.filter(function (x) { return x.onceki === g.id && x.durum !== 'geri'; })[0];
+      if (g.tur !== 'soru' && !g.onceki && !sonra && !g.duzeltildi && (g.sonuc || {}).maddeler && (g.sonuc.maddeler.some(function (m) { return m.durum !== 'dogru'; })))
+        govde += '<div class="kutu-adim"><b>✍️ Şimdi düzelt</b><div class="metin">Geri bildirime göre yanlışlarını düzelt ve yeniden gönder. Öğretmenin düzelttiğin hâlini görecek.</div>' +
+          '<a class="dugme ana" href="#/gonder/' + esc(g.tur) + '/' + esc(g.odev || '-') + '/' + esc(g.id) + '">✍️ Düzeltip yeniden gönder</a></div>';
+      else if (sonra) govde += '<p class="soluk kucuk">✍️ Bu çalışmayı düzeltip yeniden gönderdin. <a href="#/g/' + esc(sonra.id) + '">Düzeltilmiş hâlini gör ›</a></p>';
+    }
+    if (g.onceki) govde = '<p class="soluk kucuk">✍️ Bu, düzeltip yeniden gönderdiğin hâli. <a href="#/g/' + esc(g.onceki) + '">İlk gönderimini gör ›</a></p>' + govde;
     kok.innerHTML = '<h1>' + t.ikon + ' ' + esc(od ? od.baslik : t.ad) + '</h1><p class="alt-baslik">' + esc(tarih(g.at)) + ' · <span class="durum ' + esc(g.durum) + '">' + esc(DURUM[g.durum] || g.durum) + '</span></p>' +
       '<div class="beyaz">' + govde + '</div>' +
       '<div class="beyaz"><h3 style="margin-top:0">Gönderdiğin fotoğraflar</h3>' + fotolar + (g.not ? '<p class="soluk kucuk">Notun: “' + esc(g.not) + '”</p>' : '') + '</div>';
@@ -285,6 +303,9 @@
   function sonucHtml(s, tur) {
     var h = '';
     if (s.puan != null && s.puan !== '') h += '<div class="puan-kutu">' + esc(s.puan) + (s.tam ? '<small>/ ' + esc(s.tam) + '</small>' : '') + '</div>';
+    if (s.guclu) h += '<div class="kutu-guclu"><b>💪 Güçlü yönün</b><div class="metin">' + esc(s.guclu) + '</div></div>';
+    if (s.gelisim) h += '<div class="kutu-gelisim"><b>🎯 Geliştirmen gereken</b><div class="metin">' + esc(s.gelisim) + '</div></div>';
+    if (s.adim) h += '<div class="kutu-adim"><b>👣 Bir sonraki adımın</b><div class="metin">' + esc(s.adim) + '</div></div>';
     if (s.ozet) h += '<p class="metin">' + esc(s.ozet) + '</p>';
     if (s.maddeler && s.maddeler.length) {
       var IS = { dogru: '✅', yanlis: '❌', kismi: '🟡', bos: '⬜' };
@@ -314,7 +335,7 @@
     if (!oturum()) { geriAyarla(''); girisSayfasi(); return; }
     var goster = function () {
       if (p[0] === 'odevler') { geriAyarla('#/'); odevlerSayfasi(); }
-      else if (p[0] === 'gonder') { geriAyarla(p[1] === 'odev' ? '#/odevler' : '#/'); gonderSayfasi(p[1], p[2]); }
+      else if (p[0] === 'gonder') { geriAyarla(p[3] ? '#/g/' + p[3] : p[1] === 'odev' ? '#/odevler' : '#/'); gonderSayfasi(p[1], p[2], p[3]); }
       else if (p[0] === 'g' && p[1]) { geriAyarla('#/'); ayrintiSayfasi(p[1]); }
       else { geriAyarla(''); anaSayfa(); }
       window.scrollTo(0, 0);
