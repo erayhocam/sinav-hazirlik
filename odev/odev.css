@@ -109,8 +109,8 @@ h3 { font-size: 1rem; margin: 1rem 0 .4rem; }
 .ogretmen-notu b { color: #1d5d9b; }
 .puan-kutu { display: flex; align-items: baseline; gap: .4rem; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 2rem; color: var(--ana); margin: .2rem 0; }
 .puan-kutu small { font-size: 1rem; color: var(--yazi2); }
-.madde { border-top: 1px solid var(--cizgi); padding: .6rem 0; display: grid; grid-template-columns: 2.2rem 1fr; gap: .1rem .5rem; }
-.madde .m-et { font-weight: 900; color: var(--yazi2); }
+.madde { border-top: 1px solid var(--cizgi); padding: .6rem 0; display: grid; grid-template-columns: minmax(3rem, auto) minmax(0, 1fr); gap: .1rem .5rem; }
+.madde .m-et { font-weight: 900; color: var(--yazi2); max-width: 7rem; overflow-wrap: anywhere; line-height: 1.3; }
 .madde .m-isaret { font-size: 1.1rem; }
 .madde .m-ogr { font-weight: 700; }
 .madde .m-dogru { color: var(--yesil); font-weight: 800; }
